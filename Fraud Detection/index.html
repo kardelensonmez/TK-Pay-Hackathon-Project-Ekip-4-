@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şüpheli İşlem Analizi Demo</title>
+</head>
+<body>
+    <h1>Şüpheli İşlem Analizi Demo</h1>
+    <div>
+        <button onclick="getRandomUser()">Kullanıcı ID Seç</button>
+        <div id="user-id" style="margin: 10px 0; padding: 10px; background-color: red; color: white;">UserID:</div>
+        <button onclick="predict()">Sonuç:</button>
+        <div id="result" style="margin: 10px 0; padding: 10px; background-color: red; color: white;">Sonuç:</div>
+    </div>
+
+    <script>
+        function getRandomUser() {
+            fetch('/get_random_user', {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('user-id').innerText = 'UserID: ' + data.user_id;
+                    document.getElementById('result').innerText = 'Sonuç:';
+                });
+        }
+
+        function predict() {
+            const userIdText = document.getElementById('user-id').innerText;
+            const userId = userIdText.split(' ')[1];
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_id: userId})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('result').innerText = 'Hata: ' + data.error;
+                    } else {
+                        const resultText = `Tahmin: ${data.prediction} (Gerçek: ${data.true_label}), Doğru Mu: ${data.is_correct}, Olasılıklar (Non-Fraud, Fraud): ${data.probability}`;
+                        document.getElementById('result').innerText = 'Sonuç: ' + resultText;
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
